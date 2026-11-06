@@ -1,0 +1,11 @@
+# ***************************
+# FLYWAY / DATASOURCE
+# ***************************
+USER_DB=[colo o nome de usuario do banco]
+PASSWORD_DB=[cole a senha do banco]
+URL_DB=[cole a URL do banco de dados]
+
+# ***************************
+# chave segura tokens JWT
+# ***************************
+SECURITY_SECRET_TOKEN=[gere uma senha]

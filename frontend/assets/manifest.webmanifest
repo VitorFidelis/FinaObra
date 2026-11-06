@@ -1,0 +1,11 @@
+{
+  "name": "FinaObra - Gestão da obra",
+  "short_name": "FinaObra",
+  "description": "Controle de despesas e orçamento da construção.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#f8fafc",
+  "lang": "pt-BR",
+  "icons": []
+}

@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS categorias (
+    id_categoria INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    valor_planejado NUMERIC(10,2) NOT NULL
+);
