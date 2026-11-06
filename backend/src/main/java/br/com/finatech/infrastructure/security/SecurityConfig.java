@@ -1,4 +1,3 @@
-
 package br.com.finatech.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
@@ -13,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource; // Adicione este import
 
 import br.com.finatech.infrastructure.hazelcast.RateLimitUserFilter;
 
@@ -22,20 +22,22 @@ public class SecurityConfig {
 
         private final SecurityFilter securityFilter;
         private final RateLimitUserFilter rateLimitFilter;
+        private final CorsConfigurationSource corsConfigurationSource; // 1. Adicione a dependência do CORS
 
-        public SecurityConfig(
-                        SecurityFilter securityFilter,
-                        RateLimitUserFilter rateLimitFilter) {
+        // 2. Atualize o construtor para receber o corsConfigurationSource
+        public SecurityConfig(SecurityFilter securityFilter, RateLimitUserFilter rateLimitFilter,
+                        CorsConfigurationSource corsConfigurationSource) {
                 this.securityFilter = securityFilter;
                 this.rateLimitFilter = rateLimitFilter;
+                this.corsConfigurationSource = corsConfigurationSource;
         }
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .csrf(csrf -> csrf.disable())
-                                .cors(cors -> {
-                                })
+                                // 3. Vincule explicitamente a sua configuração customizada de CORS
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                                 .authorizeHttpRequests(auth -> auth
