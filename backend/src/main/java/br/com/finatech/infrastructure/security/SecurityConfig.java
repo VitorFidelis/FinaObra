@@ -1,3 +1,4 @@
+
 package br.com.finatech.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
@@ -19,25 +20,46 @@ import br.com.finatech.infrastructure.hazelcast.RateLimitUserFilter;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private SecurityFilter securityFilter;
-    private RateLimitUserFilter rateLimitFilter;
+    private final SecurityFilter securityFilter;
+    private final RateLimitUserFilter rateLimitFilter;
 
-    public SecurityConfig(SecurityFilter securityFilter, RateLimitUserFilter rateLimitFilter) {
+    public SecurityConfig(
+            SecurityFilter securityFilter,
+            RateLimitUserFilter rateLimitFilter) {
         this.securityFilter = securityFilter;
         this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
                 .csrf(csrf -> csrf.disable())
+
+                .cors(cors -> {
+                })
+
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                        .requestMatchers("/api-docs/**", "/api-docs.yaml/**", "/swagger-ui/**", "/swagger-ui.html")
+
+                .authorizeHttpRequests(auth -> auth
+
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/auth/login",
+                                "/auth/register")
                         .permitAll()
-                        .requestMatchers("/index.html").permitAll()
-                        .requestMatchers("/",
+
+                        .requestMatchers(
+                                "/api-docs/**",
+                                "/api-docs.yaml",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html")
+                        .permitAll()
+
+                        .requestMatchers(
+                                "/",
                                 "/index.html",
                                 "/styles.css",
                                 "/app.js",
@@ -46,9 +68,16 @@ public class SecurityConfig {
                                 "/sw.js",
                                 "/favicon.ico")
                         .permitAll()
+
                         .anyRequest().authenticated())
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
+
+                .addFilterBefore(
+                        securityFilter,
+                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(
+                        rateLimitFilter,
+                        SecurityFilter.class);
+
         return http.build();
     }
 
@@ -58,7 +87,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }
