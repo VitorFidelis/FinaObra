@@ -20,75 +20,72 @@ import br.com.finatech.infrastructure.hazelcast.RateLimitUserFilter;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final SecurityFilter securityFilter;
-    private final RateLimitUserFilter rateLimitFilter;
+        private final SecurityFilter securityFilter;
+        private final RateLimitUserFilter rateLimitFilter;
 
-    public SecurityConfig(
-            SecurityFilter securityFilter,
-            RateLimitUserFilter rateLimitFilter) {
-        this.securityFilter = securityFilter;
-        this.rateLimitFilter = rateLimitFilter;
-    }
+        public SecurityConfig(
+                        SecurityFilter securityFilter,
+                        RateLimitUserFilter rateLimitFilter) {
+                this.securityFilter = securityFilter;
+                this.rateLimitFilter = rateLimitFilter;
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .cors(cors -> {
+                                })
+                                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-        http
-                .csrf(csrf -> csrf.disable())
+                                .authorizeHttpRequests(auth -> auth
 
-                .cors(cors -> {
-                })
+                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/auth/login",
+                                                                "/auth/register")
+                                                .permitAll()
 
-                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(
+                                                                "/api-docs/**",
+                                                                "/api-docs.yaml",
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html")
+                                                .permitAll()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                .requestMatchers(
+                                                                "/",
+                                                                "/index.html",
+                                                                "/styles.css",
+                                                                "/app.js",
+                                                                "/config.js",
+                                                                "/manifest.webmanifest",
+                                                                "/sw.js",
+                                                                "/favicon.ico")
+                                                .permitAll()
 
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/auth/login",
-                                "/auth/register")
-                        .permitAll()
+                                                .anyRequest().authenticated())
 
-                        .requestMatchers(
-                                "/api-docs/**",
-                                "/api-docs.yaml",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html")
-                        .permitAll()
+                                .addFilterBefore(
+                                                securityFilter,
+                                                UsernamePasswordAuthenticationFilter.class)
+                                .addFilterAfter(
+                                                rateLimitFilter,
+                                                SecurityFilter.class);
 
-                        .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/styles.css",
-                                "/app.js",
-                                "/config.js",
-                                "/manifest.webmanifest",
-                                "/sw.js",
-                                "/favicon.ico")
-                        .permitAll()
+                return http.build();
+        }
 
-                        .anyRequest().authenticated())
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-                .addFilterBefore(
-                        securityFilter,
-                        UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(
-                        rateLimitFilter,
-                        SecurityFilter.class);
-
-        return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authenticationConfiguration) {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(
+                        AuthenticationConfiguration authenticationConfiguration) {
+                return authenticationConfiguration.getAuthenticationManager();
+        }
 }
