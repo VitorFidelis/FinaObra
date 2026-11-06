@@ -3,7 +3,7 @@
 
   const configuredOrigin = window.FINAOBRA_CONFIG?.API_ORIGIN;
   const isLocalDevelopment = ['localhost', '127.0.0.1'].includes(location.hostname);
-  const API_ORIGIN = new URL(configuredOrigin || (isLocalDevelopment ? '${API_PROVADER}' : location.origin));
+  const API_ORIGIN = new URL(configuredOrigin || (isLocalDevelopment ? `${process.env.API_PROVIDER}` : location.origin));
   
   if (!['http:', 'https:'].includes(API_ORIGIN.protocol) || (location.protocol === 'https:' && API_ORIGIN.protocol !== 'https:')) {
     throw new Error('Configuração insegura da API: use HTTPS quando o frontend estiver em HTTPS.');
