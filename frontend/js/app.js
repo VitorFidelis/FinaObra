@@ -3,8 +3,10 @@
 
   const configuredOrigin = window.FINAOBRA_CONFIG?.API_ORIGIN;
   const isLocalDevelopment = ['localhost', '127.0.0.1'].includes(location.hostname);
-  const API_ORIGIN = new URL(configuredOrigin || (isLocalDevelopment ? 'https://finaobra.onrender.com' : location.origin));
-  
+  const API_ORIGIN = new URL(
+    configuredOrigin || 'https://finaobra.onrender.com'
+  );;
+
   if (!['http:', 'https:'].includes(API_ORIGIN.protocol) || (location.protocol === 'https:' && API_ORIGIN.protocol !== 'https:')) {
     throw new Error('Configuração insegura da API: use HTTPS quando o frontend estiver em HTTPS.');
   }
@@ -86,14 +88,14 @@
     return new Promise(resolve => {
       $('confirm-modal-title').textContent = title;
       $('confirm-modal-message').textContent = message;
-      
+
       const confirmBtn = $('confirm-modal-yes');
       const onConfirm = () => {
         cleanup();
         confirmModal.hide();
         resolve(true);
       };
-      
+
       const onDismiss = () => {
         cleanup();
         resolve(false);
@@ -115,18 +117,18 @@
     $('theme-icon').className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
     $('theme-toggle').setAttribute('aria-label', theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro');
     $('theme-color-meta').content = theme === 'dark' ? '#090d16' : '#f8fafc';
-    try { localStorage.setItem('finaobra-theme', theme); } catch {}
+    try { localStorage.setItem('finaobra-theme', theme); } catch { }
   }
 
   function getTheme() {
-    try { const saved = localStorage.getItem('finaobra-theme'); if (saved) return saved; } catch {}
+    try { const saved = localStorage.getItem('finaobra-theme'); if (saved) return saved; } catch { }
     return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
 
   function navigate(view) {
     document.querySelectorAll('.view').forEach(el => el.classList.toggle('d-none', el.id !== `view-${view}`));
     document.querySelectorAll('#main-nav .nav-link').forEach(el => el.classList.toggle('active', el.dataset.view === view));
-    
+
     $('app-sidebar')?.classList.remove('show');
 
     if (view === 'dashboard') renderDashboard();
@@ -156,7 +158,7 @@
       const budget = categoryBudget(c);
       const pct = budget > 0 ? (spentCat / budget) * 100 : 0;
       const barColor = pct > 100 ? 'var(--color-danger)' : pct >= 85 ? 'var(--color-warning)' : 'var(--color-primary)';
-      
+
       return `
         <div class="progress-item">
           <div class="progress-meta-row">
@@ -288,7 +290,7 @@
       }
     });
     if (response.status === 401) {
-      try { sessionStorage.removeItem(TOKEN_KEY); } catch {}
+      try { sessionStorage.removeItem(TOKEN_KEY); } catch { }
       showAuthScreen('Sua autenticação expirou. Entre novamente.');
     }
     return readResponse(response);
@@ -362,7 +364,7 @@
   });
 
   $('logout-btn').addEventListener('click', () => {
-    try { sessionStorage.removeItem(TOKEN_KEY); } catch {}
+    try { sessionStorage.removeItem(TOKEN_KEY); } catch { }
     apiOnline = false;
     categories = [];
     expenses = [];
@@ -433,7 +435,7 @@
     $('total-planejado').textContent = money(data.totalPlanejado);
     $('total-realizado').textContent = money(data.totalRealizado);
     $('saldo-restante').textContent = money(data.saldoRestante);
-    
+
     const saldoNum = Number(data.saldoRestante);
     $('saldo-restante').classList.toggle('text-danger', saldoNum < 0);
     $('saldo-restante').classList.toggle('text-success', saldoNum >= 0);
@@ -442,7 +444,7 @@
     $('category-progress').innerHTML = rows.length ? rows.map(c => {
       const pct = Number(c.percentualGasto ?? (Number(c.valorPlanejado) > 0 ? (Number(c.valorGasto) / Number(c.valorPlanejado)) * 100 : 0));
       const barColor = pct > 100 ? 'var(--color-danger)' : pct >= 85 ? 'var(--color-warning)' : 'var(--color-primary)';
-      
+
       return `
         <div class="progress-item">
           <div class="progress-meta-row">
@@ -491,7 +493,7 @@
     const filterCat = $('filter-category');
     if (!filterCat) return;
     const currentVal = filterCat.value;
-    filterCat.innerHTML = '<option value="">Todas as categorias</option>' + 
+    filterCat.innerHTML = '<option value="">Todas as categorias</option>' +
       categories.map(c => `<option value="${safe(c.id)}">${safe(c.nome)}</option>`).join('');
     if (currentVal) filterCat.value = currentVal;
   }
@@ -521,7 +523,7 @@
 
       return true;
     });
-    
+
     $('expenses-count').textContent = `${list.length} ${list.length === 1 ? 'despesa' : 'despesas'}`;
 
     $('expenses-table').innerHTML = list.length ? list.map(e => {
@@ -556,7 +558,7 @@
         </td>
       </tr>`;
 
-    $('expense-category').innerHTML = '<option value="">Selecione uma categoria...</option>' + 
+    $('expense-category').innerHTML = '<option value="">Selecione uma categoria...</option>' +
       categories.map(c => `<option value="${safe(c.id)}">${safe(c.nome)}</option>`).join('');
 
     populateFilterCategorySelect();
@@ -597,7 +599,7 @@
   }));
 
   $('theme-toggle').addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
-  
+
   $('refresh-dashboard').addEventListener('click', async () => {
     const btn = $('refresh-dashboard');
     btn.disabled = true;
@@ -688,7 +690,7 @@
       try {
         await request(`/despesas/${encodeURIComponent(id)}`, { method: 'DELETE' });
         await loadExpensesFromApi(expensesPage);
-        await loadDashboardFromApi().catch(() => {});
+        await loadDashboardFromApi().catch(() => { });
         renderExpenses();
         notify('Lançamento removido com sucesso.');
       } catch (err) {
@@ -783,7 +785,7 @@
       $('expense-date').value = todayISO();
       await loadExpensesFromApi(expensesPage);
       renderExpenses();
-      await loadDashboardFromApi().catch(() => {});
+      await loadDashboardFromApi().catch(() => { });
     } catch (err) {
       notify(err.message || 'Erro ao salvar despesa. Verifique as informações.', true);
     } finally {
@@ -906,6 +908,6 @@
   $('dismiss-install')?.addEventListener('click', () => $('install-banner')?.classList.add('d-none'));
 
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').catch(() => { });
   }
 })();
