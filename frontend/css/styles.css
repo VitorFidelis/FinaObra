@@ -95,34 +95,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
-  overflow-x: hidden; /* Evita rolagem horizontal acidental em telas pequenas */
 }
 
 /* LAYOUT CONTAINER */
 .app-container {
   display: flex;
   min-height: 100vh;
-  position: relative;
 }
 
-/* OVERLAY PARA SIDEBAR MOBILE */
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
-  z-index: 1025;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.sidebar-overlay.show {
-  display: block;
-  opacity: 1;
-}
-
-/* GRUPOS DE ENTRADA */
+/* Grupos de entrada */
 .input-group-text {
   color: var(--text-muted);
   background-color: var(--bg-surface-subtle);
@@ -134,7 +115,7 @@ body {
   border-color: var(--border-focus);
 }
 
-/* SIDEBAR */
+/* SIDEBAR (Desktop) */
 .app-sidebar {
   width: var(--sidebar-width);
   background: var(--bg-sidebar);
@@ -197,14 +178,13 @@ body {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  padding: 0.75rem 0.85rem; /* Aumentado ligeiramente para touch fácil */
+  padding: 0.7rem 0.85rem;
   color: #E0D2BE;
   font-weight: 600;
   font-size: 0.9rem;
   border-radius: var(--radius-sm);
   transition: all 0.15s ease;
   text-decoration: none;
-  min-height: 44px; /* Área de toque mínima recomendada */
 }
 
 .sidebar-nav .nav-link i {
@@ -348,10 +328,6 @@ body {
   padding: 0.55rem 1.15rem;
   box-shadow: var(--shadow-xs);
   transition: all 0.15s ease;
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .btn-primary:hover, .btn-primary:focus {
@@ -367,10 +343,6 @@ body {
   font-weight: 600;
   border-radius: var(--radius-sm);
   padding: 0.55rem 1.15rem;
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .btn-outline-primary:hover {
@@ -385,10 +357,6 @@ body {
   color: var(--text-main);
   font-weight: 600;
   border-radius: var(--radius-sm);
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .btn-light:hover {
@@ -585,12 +553,6 @@ body {
   box-shadow: 0 0 0 3px var(--color-primary-subtle);
 }
 
-.app-table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
 .app-table {
   width: 100%;
   border-collapse: collapse;
@@ -627,6 +589,7 @@ body {
 .app-table tbody tr:last-child td {
   border-bottom: none;
 }
+
 
 .badge-tag {
   display: inline-flex;
@@ -741,7 +704,7 @@ body {
   color: var(--text-muted);
   font-weight: 600;
   font-size: 0.85rem;
-  padding: 0.6rem 0.5rem;
+  padding: 0.5rem;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -780,6 +743,7 @@ body {
   margin-bottom: 0.35rem;
 }
 
+
 .form-control::placeholder,
 textarea::placeholder,
 input:not([type="checkbox"]):not([type="radio"])::placeholder {
@@ -799,8 +763,8 @@ input:not([type="checkbox"]):not([type="radio"])::placeholder {
   border-color: var(--border-color);
   color: var(--text-main);
   border-radius: var(--radius-sm);
-  font-size: 1rem; /* Alterado de 0.9rem para 1rem (16px) para previnir zoom automático em iOS/Android */
-  padding: 0.65rem 0.85rem;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.85rem;
 }
 
 .form-control:focus, .form-select:focus {
@@ -823,16 +787,10 @@ input:not([type="checkbox"]):not([type="radio"])::placeholder {
   box-shadow: var(--shadow-lg);
 }
 
-/* ==========================================================================
-   RESPONSIVIDADE E ADAPTAÇÕES MOBILE (MEDIA QUERIES)
-   ========================================================================== */
-
-/* Telas de Tablets (Abaixo de 992px) */
+/* RESPONSIVE DESIGN */
 @media (max-width: 991.98px) {
   .app-sidebar {
     position: fixed;
-    top: 0;
-    left: 0;
     transform: translateX(-100%);
     box-shadow: var(--shadow-modal);
   }
@@ -852,106 +810,15 @@ input:not([type="checkbox"]):not([type="radio"])::placeholder {
     margin-bottom: 1.5rem;
   }
 
-  .page-header .btn,
-  .page-header .btn-primary {
+  .page-header .btn {
     width: 100%;
   }
 
-  .table-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 1rem;
+  .app-table-responsive {
+    border: none;
   }
 
-  .search-box {
-    min-width: 100%;
-    max-width: 100%;
-  }
-
-  .status-pill {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.72rem;
-  }
-}
-
-/* Telas de Celulares (Abaixo de 768px) */
-@media (max-width: 767.98px) {
-  :root {
-    --header-height: 56px;
-  }
-
-  .app-header {
-    padding: 0 1rem;
-  }
-
-  .page-title {
-    font-size: 1.25rem;
-  }
-
-  .stat-card {
-    padding: 1rem;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-  }
-
-  .progress-container {
-    padding: 1.25rem;
-  }
-
-  .auth-card-modern {
-    padding: 1.5rem;
-    border-radius: var(--radius-lg);
-  }
-
-  /* Transformação de Tabelas em Cards (Card view) para Celulares */
-  .table-responsive-cards .app-table,
-  .table-responsive-cards .app-table tbody,
-  .table-responsive-cards .app-table tr,
-  .table-responsive-cards .app-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .table-responsive-cards .app-table thead {
-    display: none; /* Oculta os cabeçalhos da tabela */
-  }
-
-  .table-responsive-cards .app-table tr {
-    margin-bottom: 0.75rem;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
-    box-shadow: var(--shadow-xs);
-  }
-
-  .table-responsive-cards .app-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border-subtle);
-    text-align: right;
-  }
-
-  .table-responsive-cards .app-table td:last-child {
-    border-bottom: none;
-  }
-
-  /* Exibe o rótulo da coluna no celular através do atributo data-label */
-  .table-responsive-cards .app-table td::before {
-    content: attr(data-label);
-    font-weight: 700;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    text-align: left;
-    padding-right: 1rem;
-  }
-
-  /* Card view padrão via CSS para rows estruturados */
+  /* Card view for mobile table */
   .mobile-card-row {
     display: flex;
     flex-direction: column;
@@ -959,35 +826,5 @@ input:not([type="checkbox"]):not([type="radio"])::placeholder {
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-surface);
     gap: 0.5rem;
-  }
-
-  /* Modal estilo 'Bottom Sheet' no Celular */
-  .modal-dialog {
-    margin: 0;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-width: 100%;
-  }
-
-  .modal-content {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: var(--radius-xl);
-    border-top-right-radius: var(--radius-xl);
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-}
-
-/* Ajuste adicional para telas extra pequenas (Abaixo de 480px) */
-@media (max-width: 479.98px) {
-  .header-right .btn-action-icon:not(:last-child) {
-    display: none; /* Oculta botões de ação secundários para economizar espaço */
-  }
-
-  .status-pill span:not(.status-dot) {
-    display: none; /* Mostra apenas o ponto de status para economizar espaço */
   }
 }
