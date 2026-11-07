@@ -5,7 +5,7 @@
   const isLocalDevelopment = ['localhost', '127.0.0.1'].includes(location.hostname);
   const API_ORIGIN = new URL(
     configuredOrigin || 'https://finaobra.onrender.com'
-  );;
+  );
 
   if (!['http:', 'https:'].includes(API_ORIGIN.protocol) || (location.protocol === 'https:' && API_ORIGIN.protocol !== 'https:')) {
     throw new Error('Configuração insegura da API: use HTTPS quando o frontend estiver em HTTPS.');
@@ -80,9 +80,38 @@
   }
 
   function setApiStatus(online, label) {
-    $('api-dot').classList.toggle('online', online);
-    $('api-status').textContent = label;
+    $('api-dot')?.classList.toggle('online', online);
+    if ($('api-status')) $('api-status').textContent = label;
   }
+
+  // CONTROLE DO MENU LATERAL (MOBILE)
+  document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = $('app-sidebar');
+    const toggleBtn = $('btn-toggle-sidebar');
+    
+    let overlay = document.querySelector('.sidebar-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'sidebar-overlay';
+      document.body.appendChild(overlay);
+    }
+
+    function toggleSidebar() {
+      sidebar?.classList.toggle('show');
+      overlay.classList.toggle('show');
+    }
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleSidebar();
+      });
+    }
+
+    if (overlay) {
+      overlay.addEventListener('click', toggleSidebar);
+    }
+  });
 
   function confirmDialog(title, message) {
     return new Promise(resolve => {
@@ -130,6 +159,7 @@
     document.querySelectorAll('#main-nav .nav-link').forEach(el => el.classList.toggle('active', el.dataset.view === view));
 
     $('app-sidebar')?.classList.remove('show');
+    document.querySelector('.sidebar-overlay')?.classList.remove('show');
 
     if (view === 'dashboard') renderDashboard();
     if (view === 'lancamentos') renderExpenses();
@@ -374,7 +404,6 @@
     showAuthScreen('Sessão encerrada com sucesso.');
     authMode('login');
     $('login-password').value = '';
-
   });
 
   async function loadCategoriesFromApi(page = 0) {
@@ -508,16 +537,13 @@
     $('clear-filters-btn')?.classList.toggle('d-none', !hasActiveFilters);
 
     const list = expenses.filter(e => {
-      // Busca texto
       const textMatch = (e.descricao + ' ' + (e.categoriaNome || categoryName(categoryIdOf(e))) + ' ' + (e.fornecedor || '')).toLocaleLowerCase('pt-BR').includes(query);
       if (!textMatch) return false;
 
-      // Filtro categoria
       if (selectedCat && Number(categoryIdOf(e)) !== Number(selectedCat)) {
         return false;
       }
 
-      // Filtro data
       if (dateStart && e.data && e.data < dateStart) return false;
       if (dateEnd && e.data && e.data > dateEnd) return false;
 
@@ -530,12 +556,12 @@
       const id = safe(e.id);
       return `
         <tr>
-          <td class="ps-4 fw-bold">${safe(e.descricao)}</td>
-          <td><span class="badge-tag">${safe(e.categoriaNome || categoryName(categoryIdOf(e)))}</span></td>
-          <td class="#c4b39d small">${safe(e.fornecedor || '—')}</td>
-          <td class="#c4b39d small">${dateBR(e.data)}</td>
-          <td class="#c4b39d fw-bold font-monospace">${money(e.valor)}</td>
-          <td class="text-center">
+          <td class="ps-4 fw-bold" data-label="Descrição">${safe(e.descricao)}</td>
+          <td data-label="Categoria"><span class="badge-tag">${safe(e.categoriaNome || categoryName(categoryIdOf(e)))}</span></td>
+          <td class="small" data-label="Fornecedor">${safe(e.fornecedor || '—')}</td>
+          <td class="small" data-label="Data">${dateBR(e.data)}</td>
+          <td class="fw-bold font-monospace text-end" data-label="Valor">${money(e.valor)}</td>
+          <td class="text-center" data-label="Ações">
             <div class="d-inline-flex gap-1">
               <button class="btn-action-icon" data-edit-expense="${id}" aria-label="Editar despesa" title="Editar">
                 <i class="bi bi-pencil text-primary"></i>
@@ -548,12 +574,11 @@
         </tr>`;
     }).join('') : `
       <tr>
-        <td colspan="6" class="p-0">
+        <td colspan="6" class="p-0 border-0">
           <div class="empty-state">
             <div class="empty-state-icon"><i class="bi bi-receipt"></i></div>
             <div class="empty-state-title">Nenhum lançamento encontrado</div>
             <div class="empty-state-text">${hasActiveFilters ? 'Nenhum lançamento coincide com os filtros aplicados.' : 'Comece registrando os materiais e serviços adquiridos.'}</div>
-            ${!hasActiveFilters ? `<button class="btn btn-primary btn-sm" id="empty-state-new-expense"><i class="bi bi-plus-lg me-1"></i>Novo Lançamento</button>` : ''}
           </div>
         </td>
       </tr>`;
@@ -567,10 +592,10 @@
   function renderCategories() {
     $('categories-table').innerHTML = categories.length ? categories.map(c => `
       <tr>
-        <td class="ps-4 #c4b39d small font-monospace">#${safe(c.id)}</td>
-        <td class="fw-bold">${safe(c.nome)}</td>
-        <td class="text-end fw-bold font-monospace">${money(categoryBudget(c))}</td>
-        <td class="text-center">
+        <td class="ps-4 small font-monospace" data-label="ID">#${safe(c.id)}</td>
+        <td class="fw-bold" data-label="Nome">${safe(c.nome)}</td>
+        <td class="text-end fw-bold font-monospace" data-label="Orçamento">${money(categoryBudget(c))}</td>
+        <td class="text-center" data-label="Ações">
           <div class="d-inline-flex gap-1">
             <button class="btn-action-icon" data-edit-category="${safe(c.id)}" aria-label="Editar categoria" title="Editar">
               <i class="bi bi-pencil text-primary"></i>
@@ -582,12 +607,11 @@
         </td>
       </tr>`).join('') : `
       <tr>
-        <td colspan="4" class="p-0">
+        <td colspan="4" class="p-0 border-0">
           <div class="empty-state">
             <div class="empty-state-icon"><i class="bi bi-folder-plus"></i></div>
             <div class="empty-state-title">Nenhuma categoria cadastrada</div>
             <div class="empty-state-text">Defina as fases da sua obra para estabelecer limites orçamentários.</div>
-            <button class="btn btn-primary btn-sm" id="empty-state-new-category"><i class="bi bi-plus-lg me-1"></i>Criar Categoria</button>
           </div>
         </td>
       </tr>`;
@@ -658,7 +682,6 @@
 
   // EDIÇÃO E EXCLUSÃO DE DESPESA
   $('expenses-table').addEventListener('click', async e => {
-    // Editar
     const editBtn = e.target.closest('[data-edit-expense]');
     if (editBtn) {
       const id = editBtn.dataset.editExpense;
@@ -678,7 +701,6 @@
       return;
     }
 
-    // Excluir
     const deleteBtn = e.target.closest('[data-delete-expense]');
     if (deleteBtn) {
       const id = deleteBtn.dataset.deleteExpense;
@@ -701,7 +723,6 @@
 
   // EDIÇÃO E EXCLUSÃO DE CATEGORIA
   $('categories-table').addEventListener('click', async e => {
-    // Editar
     const editBtn = e.target.closest('[data-edit-category]');
     if (editBtn) {
       const id = Number(editBtn.dataset.editCategory);
@@ -718,7 +739,6 @@
       return;
     }
 
-    // Excluir
     const deleteBtn = e.target.closest('[data-delete-category]');
     if (deleteBtn) {
       const id = Number(deleteBtn.dataset.deleteCategory);
@@ -754,43 +774,34 @@
     const isEdit = Boolean(expenseId);
 
     const categoriaId = Number($('expense-category').value);
-    const categoria = categories.find(c => Number(c.id) === categoriaId);
     const descricao = $('expense-description').value.trim();
     const fornecedor = $('expense-supplier').value.trim();
     const valor = parseMoneyInput($('expense-value'));
     const data = $('expense-date').value;
 
-    if (!categoria || !descricao || !fornecedor || !Number.isFinite(valor) || valor < 2 || valor > 999999.99 || !data) {
-      notify('Preencha os campos corretamente. O valor mínimo é R$ 2,00.', true);
+    if (!categoriaId || !descricao || !fornecedor || isNaN(valor) || valor <= 0 || !data) {
+      notify('Preencha todos os campos do lançamento corretamente.', true);
       return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${isEdit ? 'Salvando...' : 'Cadastrando...'}`;
-
-    const payload = { descricao, categoria_id: categoriaId, fornecedor, valor, data };
-
     try {
+      const payload = { descricao, fornecedor, valor, data, idCategoria: categoriaId };
       if (isEdit) {
         await request(`/despesas/${encodeURIComponent(expenseId)}`, { method: 'PUT', body: JSON.stringify(payload) });
-        notify('Lançamento atualizado com sucesso.');
+        notify('Lançamento atualizado com sucesso!');
       } else {
         await request('/despesas', { method: 'POST', body: JSON.stringify(payload) });
-        notify('Lançamento registrado com sucesso.');
+        notify('Novo lançamento criado com sucesso!');
       }
-
       expenseModal.hide();
-      e.target.reset();
+      $('expense-form').reset();
       $('expense-id').value = '';
-      $('expense-date').value = todayISO();
-      await loadExpensesFromApi(expensesPage);
-      renderExpenses();
-      await loadDashboardFromApi().catch(() => { });
+      await refreshApiData();
     } catch (err) {
-      notify(err.message || 'Erro ao salvar despesa. Verifique as informações.', true);
+      notify(err.message || 'Erro ao salvar despesa.', true);
     } finally {
       btn.disabled = false;
-      btn.textContent = isEdit ? 'Salvar Alterações' : 'Salvar Lançamento';
     }
   });
 
@@ -798,52 +809,45 @@
   $('category-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn = $('category-submit-btn');
-    const catId = $('category-id').value;
-    const isEdit = Boolean(catId);
+    const categoryId = $('category-id').value;
+    const isEdit = Boolean(categoryId);
 
     const nome = $('category-name').value.trim();
     const valor_planejado = parseMoneyInput($('category-budget'));
 
-    if (!nome || !Number.isFinite(valor_planejado) || valor_planejado < 2 || valor_planejado > 999999.99) {
-      notify('Informe o nome e um orçamento entre R$ 2,00 e R$ 999.999,99.', true);
+    if (!nome || isNaN(valor_planejado) || valor_planejado < 0) {
+      notify('Preencha o nome e o orçamento planejado corretamente.', true);
       return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${isEdit ? 'Salvando...' : 'Cadastrando...'}`;
-
-    const payload = { nome, valor_planejado };
-
     try {
+      const payload = { nome, valor_planejado };
       if (isEdit) {
-        await request(`/categorias/${encodeURIComponent(catId)}`, { method: 'PUT', body: JSON.stringify(payload) });
-        notify('Categoria atualizada com sucesso.');
+        await request(`/categorias/${encodeURIComponent(categoryId)}`, { method: 'PUT', body: JSON.stringify(payload) });
+        notify('Categoria atualizada com sucesso!');
       } else {
         await request('/categorias', { method: 'POST', body: JSON.stringify(payload) });
-        notify('Categoria criada com sucesso.');
+        notify('Nova categoria criada com sucesso!');
       }
-
       categoryModal.hide();
-      e.target.reset();
+      $('category-form').reset();
       $('category-id').value = '';
-      await loadCategoriesFromApi(categoriesPage);
-      renderCategories();
-      renderExpenses();
       await refreshApiData();
     } catch (err) {
       notify(err.message || 'Erro ao salvar categoria.', true);
     } finally {
       btn.disabled = false;
-      btn.textContent = isEdit ? 'Salvar Alterações' : 'Cadastrar Categoria';
     }
   });
 
-  // RESET MODAL HANDLERS
+  // RESET DOS MODAIS AO FECHAR
   $('expense-modal').addEventListener('hidden.bs.modal', () => {
     $('expense-form').reset();
     $('expense-id').value = '';
     $('expense-title').innerHTML = '<i class="bi bi-receipt text-primary me-2"></i>Novo Lançamento';
     $('expense-submit-btn').textContent = 'Salvar Lançamento';
+    $('expense-date').value = todayISO();
   });
 
   $('category-modal').addEventListener('hidden.bs.modal', () => {
@@ -853,61 +857,15 @@
     $('category-submit-btn').textContent = 'Cadastrar Categoria';
   });
 
-  // Empty states CTA delegation
-  document.body.addEventListener('click', e => {
-    if (e.target.closest('#empty-state-new-expense')) {
-      expenseModal.show();
-    }
-    if (e.target.closest('#empty-state-new-category')) {
-      categoryModal.show();
-    }
-  });
-
-  // SIDEBAR MOBILE TOGGLE
-  $('sidebar-toggle')?.addEventListener('click', () => {
-    $('app-sidebar')?.classList.toggle('show');
-  });
-
-  $('about-btn').addEventListener('click', () => bootstrap.Modal.getOrCreateInstance($('about-modal')).show());
-  $('expense-modal').addEventListener('show.bs.modal', () => {
-    renderExpenses();
-    if (!$('expense-date').value) $('expense-date').value = todayISO();
-  });
-
+  // INICIALIZAÇÃO DO APP
   applyTheme(getTheme());
   $('expense-date').value = todayISO();
-  const initial = location.hash.replace('#', '');
-  navigate(['dashboard', 'lancamentos', 'orcamentos'].includes(initial) ? initial : 'dashboard');
 
-  if (getToken()) {
+  const token = getToken();
+  if (token) {
     hideAuthScreen();
     refreshApiData();
   } else {
     showAuthScreen();
-    authMode('login');
-    setApiStatus(false, 'Não autenticado');
-  }
-
-  // PWA Prompt
-  let installPrompt = null;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    installPrompt = e;
-    $('install-banner')?.classList.remove('d-none');
-    $('install-banner')?.classList.add('d-flex');
-  });
-
-  $('install-btn')?.addEventListener('click', async () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    await installPrompt.userChoice;
-    installPrompt = null;
-    $('install-banner')?.classList.add('d-none');
-  });
-
-  $('dismiss-install')?.addEventListener('click', () => $('install-banner')?.classList.add('d-none'));
-
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    navigator.serviceWorker.register('./sw.js').catch(() => { });
   }
 })();
