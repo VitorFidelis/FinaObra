@@ -38,7 +38,7 @@ public class HazelcastConfig {
     }
 
     @Bean
-    public Config hazelcastConfig() {
+    public Config hazelcastDesableApiRestConfig() {
         Config config = new Config();
         // Desativa explicitamente a API REST
         config.getNetworkConfig().getRestApiConfig().setEnabled(false);
