@@ -1,5 +1,6 @@
 package br.com.finatech.infrastructure.hazelcast;
 
+import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
@@ -34,5 +35,13 @@ public class HazelcastConfig {
     @Bean
     CacheManager cacheManager(HazelcastInstance hazelcastInstance) {
         return new HazelcastCacheManager(hazelcastInstance);
+    }
+
+    @Bean
+    public Config hazelcastConfig() {
+        Config config = new Config();
+        // Desativa explicitamente a API REST
+        config.getNetworkConfig().getRestApiConfig().setEnabled(false);
+        return config;
     }
 }
